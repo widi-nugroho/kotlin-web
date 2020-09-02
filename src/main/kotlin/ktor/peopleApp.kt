@@ -42,6 +42,7 @@ fun main(){
                 val umur=call.request.queryParameters["umur"]!!.toInt()
                 val pekerjaan=call.request.queryParameters["pek"]!!
                 val p=Person(nama, umur, pekerjaan)
+                println(nama+umur.toString()+pekerjaan+"-----------")
                 mapPeople[nama.toLowerCase()]=p
             }
             get("/deletePerson"){

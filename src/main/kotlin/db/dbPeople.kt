@@ -17,7 +17,7 @@ object DB{
     init {
         val url = "jdbc:sqlite:/home/widi/sqlite/db/people3.db"
         val sql= """CREATE TABLE IF NOT EXISTS peoples (
-            nama text NOT NULL,
+            nama text PRIMARY KEY,
             usia integer,
             pekerjaan text NOT NULL
         );"""
@@ -53,26 +53,27 @@ object DB{
             println(e.message)
         }
     }
-    fun delete(name:String){
+    fun delete(nama:String){
         var sql="DELETE FROM peoples WHERE nama = ?"
         try {
             var conn=this.connect()
             var pstmt  = conn!!.prepareStatement(sql)
-            pstmt.setString(1,name)
+            pstmt.setString(1,nama)
             pstmt.executeUpdate();
         }catch (e:SQLException){
             println(e.message)
         }
     }
     fun update(nama:String,usia:Int,pekerjaan:String){
-        var sql= ("UPDATE peoples SET pekerjaan = ? , "
-                + "usia = ? "
+        var sql= ("UPDATE peoples SET usia = ? , "
+                + "pekerjaan = ? "
                 + "WHERE nama = ?")
         try {
             var conn=this.connect()
             var pstmt=conn!!.prepareStatement(sql)
-            pstmt.setInt(2,usia)
-            pstmt.setString(3,pekerjaan)
+            pstmt.setInt(1,usia)
+            pstmt.setString(2,pekerjaan)
+            pstmt.setString(3,nama)
             pstmt.executeUpdate()
         }catch (e:SQLException){
             println(e.message)
@@ -97,7 +98,7 @@ object DB{
     }
 }
 fun main(){
-    val server= embeddedServer(Netty,8080){
+    val server= embeddedServer(Netty,9000){
         install(ContentNegotiation) {
             gson {
                 setDateFormat(DateFormat.LONG)
@@ -117,9 +118,10 @@ fun main(){
             }
             get("/updatePerson"){
                 val nama=call.request.queryParameters["nama"]!!
-                val umur=call.request.queryParameters["umur"]!!.toInt()
-                val pekerjaan=call.request.queryParameters["pek"]!!
-                DB.update(nama,umur,pekerjaan)
+                val usia=call.request.queryParameters["usia"]!!.toInt()
+                val pekerjaan=call.request.queryParameters["pekerjaan"]!!
+                println(nama+usia.toString()+pekerjaan+"-----------")
+                DB.update(nama,usia,pekerjaan)
                 call.respondText(nama+" updated")
             }
             get("/allPerson"){

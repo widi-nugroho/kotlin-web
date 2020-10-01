@@ -1,5 +1,7 @@
 package db
 
+import com.beust.klaxon.Klaxon
+import com.google.gson.Gson
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.gson.*
@@ -12,7 +14,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.DateFormat
-data class Person(val nama:String, val umur:Int, val pekerjaan:String)
+data class Person(val nama:String, val usia:Int, val pekerjaan:String){
+    override fun toString(): String {
+        return nama+" usia "+usia
+    }
+}
 object DB{
     init {
         val url = "jdbc:sqlite:/home/widi/sqlite/db/people3.db"
@@ -45,7 +51,7 @@ object DB{
             var conn=this.connect()
             var pstmt= conn!!.prepareStatement(sql)
             pstmt.setString(1, p.nama.toLowerCase());
-            pstmt.setInt(2,p.umur)
+            pstmt.setInt(2,p.usia)
             pstmt.setString(3,p.pekerjaan)
             pstmt.executeUpdate();
             //conn.commit()
@@ -87,9 +93,8 @@ object DB{
             var stmt  = conn!!.createStatement()
             var rs    = stmt.executeQuery(sql)
             while (rs.next()){
-                res1.add(rs.getString("nama") + "\t" +
-                        rs.getInt("usia").toString() + "\t" +
-                        rs.getString("pekerjaan"))
+                var p1=Person(rs.getString("nama"),rs.getInt("usia"),rs.getString("pekerjaan"))
+                res1.add(Klaxon().toJsonString(p1))
             }
         }catch (e:SQLException){
             println(e.message)
@@ -109,7 +114,7 @@ fun main(){
             post("/addPerson") {
                 val p=call.receive<Person>()
                 DB.insert(p)
-                call.respondText(p.nama+" "+p.umur+" "+p.pekerjaan)
+                call.respondText(p.nama+" "+p.usia+" "+p.pekerjaan)
             }
             get("/deletePerson"){
                 val nama=call.request.queryParameters["nama"]!!
@@ -131,4 +136,5 @@ fun main(){
         }
     }
     server.start(wait=true)
+
 }
